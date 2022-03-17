@@ -1,36 +1,36 @@
-import {put, call, take, delay,takeLatest,throttle,debounce} from 'redux-saga/effects'
+import { put, debounce, take, takeEvery, call } from "redux-saga/effects";
 
-// const delay = (ms) => new Promise(res => setTimeout(() => {
-//   res('');
-// }, ms));
+const callAnotherAPI = async () => {
+  const res = await fetch("https://catfact.ninja/fact");
+  const data = await res.json();
+  return data;
+};
 
-const callAPI = () => new Promise(res => {
-  fetch("https://catfact.ninja/fact", {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
+function* callGetCatFact() {
+  const data = yield callAnotherAPI();
+  const { fact } = data;
+  yield put({
+    type: "counter/increment",
+    payload: {
+      catFact: fact,
     },
-  })
-    .then((data) => data.json())
-    .then((result) => {
-     res(result);
-    });
-});
-
-const callAnotherAPI = async () =>{
-const res = await fetch("https://catfact.ninja/fact");
-const data = await res.json();
-return data;
+  });
 }
 
-function* demoAAction2(){
-  // yield delay(1000);
-  yield callAnotherAPI();
-  yield put({type:'counter/increment'})
+function* getCatFact() {
+  yield debounce(1000, "GET_CAT_FACT", callGetCatFact);
 }
 
-function* demoAction(){
-yield debounce(1000,'HAHA',demoAAction2);
-//ascynrho ...
+function* getCatFactWithoutDelay() {
+  while (true) {
+    yield take("GET_CAT_FACT_NO_DELAY");
+    yield call(callGetCatFact);
+  }
 }
-export default demoAction;
+
+const actionCreator = {
+  getCatFact,
+  getCatFactWithoutDelay,
+};
+
+export default actionCreator;

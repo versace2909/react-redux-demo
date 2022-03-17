@@ -1,10 +1,10 @@
-import { createStore, applyMiddleware } from "redux";
-import { createSlice, configureStore, compose } from "@reduxjs/toolkit";
+import { createSlice, configureStore } from "@reduxjs/toolkit";
 import createSagaMiddleware from "redux-saga";
-import demoAction from "../sagas";
+import actionCreator from "../sagas";
 
 const initialCounterState = {
   counter: 0,
+  catFact: "",
 };
 
 const initialLoginState = {
@@ -16,8 +16,9 @@ const counterSlice = createSlice({
   name: "counter",
   initialState: initialCounterState,
   reducers: {
-    increment(state) {
+    increment(state, action) {
       state.counter++;
+      state.catFact = action.payload.catFact;
     },
   },
 });
@@ -45,7 +46,8 @@ const store = configureStore({
     getDefaultMiddleware().concat(sagaMiddleware),
 });
 
-sagaMiddleware.run(demoAction);
+sagaMiddleware.run(actionCreator.getCatFact);
+sagaMiddleware.run(actionCreator.getCatFactWithoutDelay);
 
 export const counterAction = counterSlice.actions;
 export const loginAction = loginSlice.actions;
